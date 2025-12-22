@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Mobilization Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Georgia, serif;
+            font-size: 12px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 14px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+
+        .sidebar-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-item:hover {
+            background-color: #e74c3c;
+        }
+
+        .sidebar-item.active {
+            background-color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 16px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: white;
+            color: #e74c3c;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: Georgia, serif;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Georgia, serif;
+            font-size: 12px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 700px;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 6px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .status-completed {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .status-in-progress {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status-not-started {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .severity-high {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .severity-medium {
+            color: #f39c12;
+        }
+
+        .severity-low {
+            color: #27ae60;
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .phase-pre {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .phase-post {
+            background-color: #9b59b6;
+            color: white;
+        }
+
+        .notification-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 380px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            transition: right 0.3s;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-panel.open {
+            right: 0;
+        }
+
+        .notification-panel-header {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-panel-header h3 {
+            font-size: 14px;
+        }
+
+        .close-panel {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .notification-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .notification-card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #e74c3c;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .notification-card.read {
+            opacity: 0.7;
+            border-left-color: #95a5a6;
+        }
+
+        .notification-card-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .notification-card-message {
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .notification-card-time {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .notification-card-actions {
+            margin-top: 6px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .notification-card-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-buttons button {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .at-risk {
+            background-color: #ffe6e6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal.fade-out {
+            animation: fadeOut 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            animation: scaleIn 0.3s ease-out forwards;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); }
+            to { transform: scale(1); }
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .modal-close:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        .modal-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .modal-tab.active {
+            border-bottom-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .modal-tab:hover {
+            background-color: #f8f9fa;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Georgia, serif;
+        }
+
+        .login-form {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 15px 25px;
+            background-color: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-buttons button:first-child {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .modal-buttons button:first-child:hover {
+            background-color: #c0392b;
+        }
+
+        .modal-buttons button:last-child {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .modal-buttons button:last-child:hover {
+            background-color: #5a6268;
+        }
+
+        .filter-controls {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select, .filter-controls input {
+            width: auto;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="login-container">
+        <form class="login-form" id="login-form">
+            <h2>UFL Project Mobilization Tracker</h2>
+            <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+            <div class="login-error" id="login-error"></div>
+        </form>
+    </div>
+
+    <div id="main-app" style="display: none;">
+        <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Navigation</h2>
+            <div class="sidebar-item active" onclick="switchSection('dashboard')">Dashboard</div>
+            <div class="sidebar-item" onclick="switchSection('pre-mobilization')">Pre-Mobilization</div>
+            <div class="sidebar-item" onclick="switchSection('post-mobilization')">Post-Mobilization</div>
+            <div class="sidebar-item" onclick="switchSection('all-projects')">All Projects</div>
+            <div class="sidebar-item" onclick="switchSection('at-risk')">At-Risk Projects</div>
+            <div class="sidebar-item" onclick="switchSection('archive')">Archive</div>
+            <div class="sidebar-item" onclick="switchSection('user-management')" id="user-management-link" style="display: none;">User Management</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>UFL Project Mobilization Tracker</h1>
+                <div class="header-buttons">
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                    <div class="notification-bell" onclick="toggleNotificationPanel()">
+                        🔔
+                        <span class="notification-count" id="notification-count">0</span>
+                    </div>
+                    <button onclick="exportData()">Export</button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Dashboard Section -->
+                <div class="section active" id="dashboard">
+                    <h2>Dashboard</h2>
+                    <div class="filter-controls">
+                        <label>Filter by Phase:</label>
+                        <select id="dashboard-filter" onchange="updateDashboard()">
+                            <option value="all">All</option>
+                            <option value="pre">Pre-Mobilization</option>
+                            <option value="post">Post-Mobilization</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Title</th>
+                                    <th>Phase</th>
+                                    <th>Status</th>
+                                    <th>Expected End</th>
+                                    <th>Days Remaining</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-body">
+                                <tr><td colspan="7" class="empty-state">No projects yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pre-Mobilization Section -->
+                <div class="section" id="pre-mobilization">
+                    <h2><span class="phase-badge phase-pre">PRE-MOBILIZATION PHASE</span></h2>
+                    <div class="filter-controls">
+                        <button onclick="openPreMobilizationForm()">+ New Project</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="pre-mobilization-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>PR Number</th>
+                                    <th>Title</th>
+                                    <th>Factory</th>
+                                    <th>Vendor</th>
+                                    <th>Expected End</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pre-mobilization-body">
+                                <tr><td colspan="7" class="empty-state">No pre-mobilization projects.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Post-Mobilization Section -->
+                <div class="section" id="post-mobilization">
+                    <h2><span class="phase-badge phase-post">POST-MOBILIZATION PHASE</span></h2>
+                    <div class="filter-controls">
+                        <button onclick="switchSection('pre-mobilization')">Move from Pre-Mobilization</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="post-mobilization-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Title</th>
+                                    <th>Risk Category</th>
+                                    <th>Incident Occurred</th>
+                                    <th>Actual End Date</th>
+                                    <th>Satisfactory</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="post-mobilization-body">
+                                <tr><td colspan="7" class="empty-state">No post-mobilization projects.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- All Projects Section -->
+                <div class="section" id="all-projects">
+                    <h2>All Projects</h2>
+                    <div class="filter-controls">
+                        <label>Filter by Phase:</label>
+                        <select id="all-projects-filter" onchange="updateAllProjects()">
+                            <option value="all">All</option>
+                            <option value="pre">Pre-Mobilization</option>
+                            <option value="post">Post-Mobilization</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="all-projects-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Title</th>
+                                    <th>Phase</th>
+                                    <th>Factory</th>
+                                    <th>Status</th>
+                                    <th>Expected End</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-projects-body">
+                                <tr><td colspan="7" class="empty-state">No projects.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- At-Risk Projects Section -->
+                <div class="section" id="at-risk">
+                    <h2>At-Risk Projects</h2>
+                    <div class="table-container">
+                        <table id="at-risk-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Title</th>
+                                    <th>Expected End Date</th>
+                                    <th>Days Remaining</th>
+                                    <th>Risk Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="at-risk-body">
+                                <tr><td colspan="6" class="empty-state">No at-risk projects.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Archive Section -->
+                <div class="section" id="archive">
+                    <h2>Archived Projects</h2>
+                    <div class="filter-controls">
+                        <input type="text" id="archive-search" placeholder="Search archived projects..." onkeyup="updateArchive()">
+                        <button onclick="clearArchive()">Clear All Archived</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="archive-table">
+                            <thead>
+                                <tr>
+                                    <th>Project ID</th>
+                                    <th>Title</th>
+                                    <th>Completion Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archive-body">
+                                <tr><td colspan="4" class="empty-state">No archived projects.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- User Management Section -->
+                <div class="section" id="user-management">
+                    <h2>User Management</h2>
+                    <div class="form-container">
+                        <h3>Add User</h3>
+                        <form onsubmit="addUser(event)">
+                            <div class="form-group">
+                                <label>Username *</label>
+                                <input type="text" id="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password *</label>
+                                <input type="password" id="userPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email *</label>
+                                <input type="email" id="userEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Role *</label>
+                                <select id="userRole">
+                                    <option>View Only</option>
+                                    <option>Editor</option>
+                                    <option>Admin</option>
+                                </select>
+                            </div>
+                            <button type="submit">Add User</button>
+                        </form>
+                    </div>
+                    <div class="table-container">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-body">
+                                <tr><td colspan="5" class="empty-state">No users added yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notification-panel">
+        <div class="notification-panel-header">
+            <h3>Notifications</h3>
+            <button class="close-panel" onclick="toggleNotificationPanel()">✕</button>
+        </div>
+        <div class="notification-list" id="notification-list">
+            <div class="empty-state">No notifications</div>
+        </div>
+    </div>
+
+    <!-- Pre-Mobilization Form Modal -->
+<div class="modal" id="pre-mobilization-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Create Pre-Mobilization Project
+            <button class="modal-close" onclick="closePreMobilizationForm()">&times;</button>
+        </div>
+        <form id="pre-mob-form" onsubmit="createPreMobilizationProject(event)">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Project ID *</label>
+                    <input type="text" id="preProjId" required>
+                </div>
+                <div class="form-group">
+                    <label>PR Number</label>
+                    <input type="text" id="prePRNumber">
+                </div>
+                <div class="form-group">
+                    <label>PO Number</label>
+                    <input type="text" id="prePONumber">
+                </div>
+                <div class="form-group">
+                    <label>Project Title *</label>
+                    <input type="text" id="preTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Factory *</label>
+                    <input type="text" id="preFactory" required>
+                </div>
+                <div class="form-group">
+                    <label>Area</label>
+                    <input type="text" id="preArea">
+                </div>
+                <div class="form-group">
+                    <label>Project Category</label>
+                    <input type="text" id="preCategory">
+                </div>
+                <div class="form-group">
+                    <label>Vendor Name</label>
+                    <input type="text" id="preVendor">
+                </div>
+                <div class="form-group">
+                    <label>Generation of SES</label>
+                    <input type="text" id="preSES">
+                </div>
+                <div class="form-group">
+                    <label>Receipt/Approval of RAM</label>
+                    <select id="preRAM">
+                        <option>Pending</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Receipt/Approval of Medical Fitness</label>
+                    <select id="preMedicalFitness">
+                        <option>Pending</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Expected End Date *</label>
+                    <input type="date" id="preExpectedEnd" required>
+                </div>
+            </div>
+        </form>
+        <div class="modal-buttons">
+            <button type="submit" form="pre-mob-form">Create Project</button>
+            <button type="button" onclick="closePreMobilizationForm()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Post-Mobilization Form Modal -->
+    <div class="modal" id="post-mobilization-modal">
+        <div class="modal-content">
+            <div class="modal-header">Move to Post-Mobilization Phase</div>
+            <form onsubmit="moveToPostMobilization(event)">
+                <div class="form-group">
+                    <label>Select Project *</label>
+                    <select id="projectToMove" required>
+                        <option value="">Choose a project...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Risk Category *</label>
+                    <select id="postRiskCategory" required>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Incident Occurred? *</label>
+                    <select id="postIncidentOccurred" onchange="toggleIncidentFields()" required>
+                        <option>No</option>
+                        <option>Yes</option>
+                    </select>
+                </div>
+                <div class="form-group" id="incident-severity-group" style="display:none;">
+                    <label>Incident Severity</label>
+                    <select id="postIncidentSeverity">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+                </div>
+                <div class="form-group" id="incident-type-group" style="display:none;">
+                    <label>Incident Type</label>
+                    <input type="text" id="postIncidentType" placeholder="e.g., Safety, Quality, Delay">
+                </div>
+                <div class="form-group">
+                    <label>Supervising Process Owner</label>
+                    <input type="text" id="postSupervisor">
+                </div>
+                <div class="form-group">
+                    <label>Actual End Date</label>
+                    <input type="date" id="postActualEnd">
+                </div>
+                <div class="form-group">
+                    <label>Safety Observations</label>
+                    <textarea id="postSafetyObservations" placeholder="Enter safety observations..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Contractor Safety Evaluation</label>
+                    <select id="postContractorSafety">
+                        <option>Not Evaluated</option>
+                        <option>Poor</option>
+                        <option>Fair</option>
+                        <option>Good</option>
+                        <option>Excellent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Satisfactory Completion? *</label>
+                    <select id="postSatisfactory" required>
+                        <option>No</option>
+                        <option>Yes</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Move to Post-Mobilization</button>
+                    <button type="button" onclick="closePostMobilizationForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Details Modal -->
+    <div class="modal" id="project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Project Details
+                <button class="modal-close" onclick="closeProjectModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-body-content">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="saveProjectChanges()">Save Changes</button>
+                <button onclick="closeProjectModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Application
+        const app = {
+            projects: [],
+            users: [],
+            notifications: [],
+            currentUser: null,
+            appStartTime: Date.now()
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('projectTrackerData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                app.projects = data.projects || [];
+                app.users = data.users || [];
+                app.notifications = data.notifications || [];
+                app.appStartTime = data.appStartTime || Date.now();
+            }
+            
+            // Always ensure admin user exists
+            const adminExists = app.users.some(u => u.username === 'admin');
+            if (!adminExists) {
+                app.users.push({
+                    username: 'admin',
+                    password: 'admin123',
+                    email: 'admin@example.com',
+                    role: 'Admin'
+                });
+                saveData();
+                console.log('Admin user created/ensured');
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('projectTrackerData', JSON.stringify({
+                projects: app.projects,
+                users: app.users,
+                notifications: app.notifications,
+                appStartTime: app.appStartTime
+            }));
+        }
+
+        // Add notification
+        function addNotification(notif) {
+            notif.id = Date.now();
+            notif.read = false;
+            app.notifications.unshift(notif);
+            saveData();
+            updateNotificationCount();
+            renderNotifications();
+        }
+
+        // Mark notification as read
+        function markNotificationAsRead(id) {
+            const notif = app.notifications.find(n => n.id === id);
+            if (notif) {
+                notif.read = true;
+                saveData();
+                updateNotificationCount();
+                renderNotifications();
+            }
+        }
+
+        // Delete notification
+        function deleteNotification(id) {
+            app.notifications = app.notifications.filter(n => n.id !== id);
+            saveData();
+            updateNotificationCount();
+            renderNotifications();
+        }
+
+        // Update notification count
+        function updateNotificationCount() {
+            const unreadCount = app.notifications.filter(n => !n.read).length;
+            document.getElementById('notification-count').textContent = unreadCount;
+        }
+
+        // Render notifications
+        function renderNotifications() {
+            const list = document.getElementById('notification-list');
+            if (app.notifications.length === 0) {
+                list.innerHTML = '<div class="empty-state">No notifications</div>';
+                return;
+            }
+            list.innerHTML = app.notifications.map(notif => `
+                <div class="notification-card ${notif.read ? 'read' : ''}">
+                    <div class="notification-card-title">${notif.title}</div>
+                    <div class="notification-card-message">${notif.message}</div>
+                    <div class="notification-card-time">${new Date(notif.timestamp).toLocaleString()}</div>
+                    <div class="notification-card-actions">
+                        ${!notif.read ? `<button onclick="markNotificationAsRead(${notif.id})">Mark Read</button>` : ''}
+                        <button onclick="deleteNotification(${notif.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle notification panel
+        function toggleNotificationPanel() {
+            document.getElementById('notification-panel').classList.toggle('open');
+        }
+
+        // Switch sections
+        function switchSection(sectionId) {
+            // Check permissions for user management
+            if (sectionId === 'user-management' && (!app.currentUser || app.currentUser.role !== 'Admin')) {
+                alert('Access denied. Admin privileges required.');
+                return;
+            }
+            
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+            event?.target?.classList.add('active');
+
+            if (sectionId === 'all-projects') updateAllProjects();
+            if (sectionId === 'dashboard') updateDashboard();
+            if (sectionId === 'at-risk') updateAtRisk();
+            if (sectionId === 'archive') updateArchive();
+            if (sectionId === 'user-management') updateUserManagement();
+            if (sectionId === 'pre-mobilization') updatePreMobilization();
+            if (sectionId === 'post-mobilization') updatePostMobilization();
+        }
+
+        // Open pre-mobilization form
+        function openPreMobilizationForm() {
+            document.getElementById('pre-mobilization-modal').classList.add('open');
+        }
+
+        // Close pre-mobilization form
+        function closePreMobilizationForm() {
+            document.getElementById('pre-mobilization-modal').classList.remove('open');
+        }
+
+        // Create pre-mobilization project
+        function createPreMobilizationProject(event) {
+            event.preventDefault();
+            
+            const projectData = {
+                id: document.getElementById('preProjId').value,
+                phase: 'pre',
+                prNumber: document.getElementById('prePRNumber').value,
+                poNumber: document.getElementById('prePONumber').value,
+                title: document.getElementById('preTitle').value,
+                factory: document.getElementById('preFactory').value,
+                area: document.getElementById('preArea').value,
+                category: document.getElementById('preCategory').value,
+                vendor: document.getElementById('preVendor').value,
+                ses: document.getElementById('preSES').value,
+                ram: document.getElementById('preRAM').value,
+                medicalFitness: document.getElementById('preMedicalFitness').value,
+                expectedEndDate: document.getElementById('preExpectedEnd').value,
+                createdAt: new Date().toISOString(),
+                locked: false,
+                status: 'In Progress'
+            };
+
+            if (app.projects.find(p => p.id === projectData.id && !p.archived)) {
+                alert('Project ID already exists!');
+                return;
+            }
+
+            app.projects.push(projectData);
+            saveData();
+            
+            addNotification({
+                type: 'project_created',
+                title: 'Pre-Mobilization Project Created',
+                message: `Project "${projectData.title}" created for ${projectData.factory}`,
+                severity: 'info',
+                timestamp: new Date().toISOString()
+            });
+
+            closePreMobilizationForm();
+            event.target.reset();
+            updatePreMobilization();
+            updateDashboard();
+        }
+
+        // Toggle incident fields
+        function toggleIncidentFields() {
+            const hasIncident = document.getElementById('postIncidentOccurred').value === 'Yes';
+            document.getElementById('incident-severity-group').style.display = hasIncident ? 'block' : 'none';
+            document.getElementById('incident-type-group').style.display = hasIncident ? 'block' : 'none';
+        }
+
+        // Move to post-mobilization
+        function moveToPostMobilization(event) {
+            event.preventDefault();
+            
+            const projectId = document.getElementById('projectToMove').value;
+            const project = app.projects.find(p => p.id === projectId);
+            
+            if (!project) {
+                alert('Project not found');
+                return;
+            }
+
+            project.phase = 'post';
+            project.riskCategory = document.getElementById('postRiskCategory').value;
+            project.incidentOccurred = document.getElementById('postIncidentOccurred').value;
+            project.incidentSeverity = document.getElementById('postIncidentSeverity').value;
+            project.incidentType = document.getElementById('postIncidentType').value;
+            project.supervisor = document.getElementById('postSupervisor').value;
+            project.actualEndDate = document.getElementById('postActualEnd').value;
+            project.safetyObservations = document.getElementById('postSafetyObservations').value;
+            project.contractorSafety = document.getElementById('postContractorSafety').value;
+            project.satisfactory = document.getElementById('postSatisfactory').value;
+            project.movedToPostAt = new Date().toISOString();
+
+            saveData();
+
+            addNotification({
+                type: 'moved_to_post',
+                title: 'Project Moved to Post-Mobilization',
+                message: `Project "${project.title}" moved to post-mobilization phase`,
+                severity: 'success',
+                timestamp: new Date().toISOString()
+            });
+
+            if (project.incidentOccurred === 'Yes') {
+                addNotification({
+                    type: 'incident_reported',
+                    title: 'Safety Incident Reported',
+                    message: `Incident of ${project.incidentSeverity} severity reported for "${project.title}"`,
+                    severity: 'high',
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            closePostMobilizationForm();
+            event.target.reset();
+            updatePostMobilization();
+            updateDashboard();
+        }
+
+        // Open post-mobilization form
+        function openPostMobilizationForm() {
+            const select = document.getElementById('projectToMove');
+            const preMobProjects = app.projects.filter(p => p.phase === 'pre' && !p.archived);
+            select.innerHTML = '<option value="">Choose a project...</option>' + 
+                preMobProjects.map(p => `<option value="${p.id}">${p.id} - ${p.title}</option>`).join('');
+            document.getElementById('post-mobilization-modal').classList.add('open');
+        }
+
+        // Close post-mobilization form
+        function closePostMobilizationForm() {
+            document.getElementById('post-mobilization-modal').classList.remove('open');
+        }
+
+        // Calculate days remaining
+        function getDaysRemaining(endDate) {
+            const end = new Date(endDate);
+            const today = new Date();
+            const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        // Check if project is at risk
+        function isAtRisk(project) {
+            const daysRemaining = getDaysRemaining(project.expectedEndDate);
+            return daysRemaining <= 7 && daysRemaining > 0 && project.status !== 'Completed';
+        }
+
+        // Check for overdue projects
+        function checkOverdueProjects() {
+            app.projects.forEach(project => {
+                if (!project.archived && getDaysRemaining(project.expectedEndDate) < 0 && project.phase === 'pre') {
+                    const existingNotif = app.notifications.find(n => 
+                        n.type === 'overdue' && n.projectId === project.id
+                    );
+                    if (!existingNotif) {
+                        addNotification({
+                            type: 'overdue',
+                            projectId: project.id,
+                            title: 'Project Overdue',
+                            message: `Project "${project.title}" has passed expected end date`,
+                            severity: 'high',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                }
+            });
+        }
+
+        // Update pre-mobilization
+        function updatePreMobilization() {
+            const projects = app.projects.filter(p => p.phase === 'pre' && !p.archived);
+            const tbody = document.getElementById('pre-mobilization-body');
+            
+            if (projects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No pre-mobilization projects.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = projects.map(project => `
+                <tr>
+                    <td>${project.id}</td>
+                    <td>${project.prNumber || '-'}</td>
+                    <td>${project.title}</td>
+                    <td>${project.factory}</td>
+                    <td>${project.vendor || '-'}</td>
+                    <td>${project.expectedEndDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button onclick="viewProject('${project.id}')">View</button>
+                            <button onclick="openPostMobilizationForm()">Move to Post</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update post-mobilization
+        function updatePostMobilization() {
+            const projects = app.projects.filter(p => p.phase === 'post' && !p.archived);
+            const tbody = document.getElementById('post-mobilization-body');
+            
+            if (projects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No post-mobilization projects.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = projects.map(project => `
+                <tr>
+                    <td>${project.id}</td>
+                    <td>${project.title}</td>
+                    <td><span class="severity-${project.riskCategory.toLowerCase()}">${project.riskCategory}</span></td>
+                    <td>${project.incidentOccurred}</td>
+                    <td>${project.actualEndDate || '-'}</td>
+                    <td><span class="status-badge status-${project.satisfactory === 'Yes' ? 'completed' : 'not-started'}">${project.satisfactory}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button onclick="viewProject('${project.id}')">View</button>
+                            <button onclick="archiveProject('${project.id}')">Archive</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            const filter = document.getElementById('dashboard-filter').value;
+            let filtered = app.projects.filter(p => !p.archived);
+            
+            if (filter === 'pre') filtered = filtered.filter(p => p.phase === 'pre');
+            if (filter === 'post') filtered = filtered.filter(p => p.phase === 'post');
+
+            const tbody = document.getElementById('dashboard-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No projects found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(project => {
+                const daysRemaining = getDaysRemaining(project.expectedEndDate);
+                const atRisk = isAtRisk(project);
+                
+                return `
+                    <tr class="${atRisk ? 'at-risk' : ''}">
+                        <td>${project.id}</td>
+                        <td>${project.title}</td>
+                        <td><span class="phase-badge ${project.phase === 'pre' ? 'phase-pre' : 'phase-post'}">${project.phase === 'pre' ? 'Pre-Mob' : 'Post-Mob'}</span></td>
+                        <td><span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span></td>
+                        <td>${project.expectedEndDate}</td>
+                        <td>${daysRemaining > 0 ? daysRemaining : 'Overdue'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="viewProject('${project.id}')">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update all projects
+        function updateAllProjects() {
+            const filter = document.getElementById('all-projects-filter').value;
+            let filtered = app.projects.filter(p => !p.archived);
+            
+            if (filter === 'pre') filtered = filtered.filter(p => p.phase === 'pre');
+            if (filter === 'post') filtered = filtered.filter(p => p.phase === 'post');
+
+            const tbody = document.getElementById('all-projects-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No projects found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(project => {
+                const daysRemaining = getDaysRemaining(project.expectedEndDate);
+                
+                return `
+                    <tr>
+                        <td>${project.id}</td>
+                        <td>${project.title}</td>
+                        <td><span class="phase-badge ${project.phase === 'pre' ? 'phase-pre' : 'phase-post'}">${project.phase === 'pre' ? 'Pre-Mob' : 'Post-Mob'}</span></td>
+                        <td>${project.factory}</td>
+                        <td><span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span></td>
+                        <td>${project.expectedEndDate}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="viewProject('${project.id}')">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update at-risk
+        function updateAtRisk() {
+            const atRiskProjects = app.projects.filter(p => {
+                if (p.archived) return false;
+                return isAtRisk(p);
+            });
+
+            const tbody = document.getElementById('at-risk-body');
+            if (atRiskProjects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No at-risk projects.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = atRiskProjects.map(project => {
+                const daysRemaining = getDaysRemaining(project.expectedEndDate);
+                
+                return `
+                    <tr class="at-risk">
+                        <td>${project.id}</td>
+                        <td>${project.title}</td>
+                        <td>${project.expectedEndDate}</td>
+                        <td>${daysRemaining} days</td>
+                        <td><span class="status-badge status-in-progress">At Risk</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="viewProject('${project.id}')">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update archive
+        function updateArchive() {
+            const searchTerm = document.getElementById('archive-search').value.toLowerCase();
+            const archived = app.projects.filter(p => {
+                if (!p.archived) return false;
+                return p.id.toLowerCase().includes(searchTerm) || p.title.toLowerCase().includes(searchTerm);
+            });
+
+            const tbody = document.getElementById('archive-body');
+            if (archived.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No archived projects.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = archived.map(project => {
+                return `
+                    <tr>
+                        <td>${project.id}</td>
+                        <td>${project.title}</td>
+                        <td>${project.archivedAt || 'Unknown'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="viewProject('${project.id}')">View</button>
+                                <button onclick="restoreProject('${project.id}')">Restore</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update user management
+        function updateUserManagement() {
+            const tbody = document.getElementById('users-body');
+            if (app.users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users added yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = app.users.map((user, index) => {
+                return `
+                    <tr>
+                        <td>${user.username}</td>
+                        <td>••••••••</td>
+                        <td>${user.email}</td>
+                        <td><span class="status-badge status-in-progress">${user.role}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="deleteUser(${index})">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // View project
+        function viewProject(projectId) {
+            const project = app.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            const daysRemaining = getDaysRemaining(project.expectedEndDate);
+
+            const generalHtml = `
+                <div class="form-section">
+                    <h3 style="color: #e74c3c; margin-bottom: 15px; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">General Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-id">Project ID</label>
+                            <input type="text" id="edit-id" value="${project.id}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-title">Project Title</label>
+                            <input type="text" id="edit-title" value="${project.title}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-factory">Factory</label>
+                            <input type="text" id="edit-factory" value="${project.factory}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-area">Area</label>
+                            <input type="text" id="edit-area" value="${project.area || ''}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-category">Project Category</label>
+                            <input type="text" id="edit-category" value="${project.category || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-vendor">Vendor Name</label>
+                            <input type="text" id="edit-vendor" value="${project.vendor || ''}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-expectedEndDate">Expected End Date</label>
+                            <input type="date" id="edit-expectedEndDate" value="${project.expectedEndDate}">
+                        </div>
+                        <div class="form-group">
+                            <label>Days Remaining</label>
+                            <div style="padding: 10px 12px; background-color: #f8f9fa; border-radius: 6px; font-weight: bold; color: ${daysRemaining > 0 ? '#28a745' : '#dc3545'};">${daysRemaining > 0 ? daysRemaining + ' days' : 'Overdue'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const preMobHtml = `
+                <div class="form-section">
+                    <h3 style="color: #3498db; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Pre-Mobilization Phase</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-prNumber">PR Number</label>
+                            <input type="text" id="edit-prNumber" value="${project.prNumber || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-poNumber">PO Number</label>
+                            <input type="text" id="edit-poNumber" value="${project.poNumber || ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ses">Generation of SES</label>
+                        <input type="text" id="edit-ses" value="${project.ses || ''}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-ram">Receipt/Approval of RAM</label>
+                            <select id="edit-ram">
+                                <option value="Pending" ${project.ram === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Yes" ${project.ram === 'Yes' ? 'selected' : ''}>Yes</option>
+                                <option value="No" ${project.ram === 'No' ? 'selected' : ''}>No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-medicalFitness">Receipt/Approval of Medical Fitness</label>
+                            <select id="edit-medicalFitness">
+                                <option value="Pending" ${project.medicalFitness === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Yes" ${project.medicalFitness === 'Yes' ? 'selected' : ''}>Yes</option>
+                                <option value="No" ${project.medicalFitness === 'No' ? 'selected' : ''}>No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const postMobHtml = `
+                <div class="form-section">
+                    <h3 style="color: #9b59b6; margin-bottom: 15px; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Post-Mobilization Phase</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-riskCategory">Risk Category</label>
+                            <select id="edit-riskCategory">
+                                <option value="Low" ${project.riskCategory === 'Low' ? 'selected' : ''}>Low</option>
+                                <option value="Medium" ${project.riskCategory === 'Medium' ? 'selected' : ''}>Medium</option>
+                                <option value="High" ${project.riskCategory === 'High' ? 'selected' : ''}>High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-supervisor">Supervising Process Owner</label>
+                            <input type="text" id="edit-supervisor" value="${project.supervisor || ''}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-actualEndDate">Actual End Date</label>
+                            <input type="date" id="edit-actualEndDate" value="${project.actualEndDate || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-satisfactory">Satisfactory Completion</label>
+                            <select id="edit-satisfactory">
+                                <option value="No" ${project.satisfactory === 'No' ? 'selected' : ''}>No</option>
+                                <option value="Yes" ${project.satisfactory === 'Yes' ? 'selected' : ''}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-incidentOccurred">Incident Occurred</label>
+                        <select id="edit-incidentOccurred" onchange="toggleEditIncidentFields()">
+                            <option value="No" ${project.incidentOccurred === 'No' ? 'selected' : ''}>No</option>
+                            <option value="Yes" ${project.incidentOccurred === 'Yes' ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-row" id="incident-details" style="display: ${project.incidentOccurred === 'Yes' ? 'flex' : 'none'};">
+                        <div class="form-group">
+                            <label for="edit-incidentSeverity">Incident Severity</label>
+                            <select id="edit-incidentSeverity">
+                                <option value="Low" ${project.incidentSeverity === 'Low' ? 'selected' : ''}>Low</option>
+                                <option value="Medium" ${project.incidentSeverity === 'Medium' ? 'selected' : ''}>Medium</option>
+                                <option value="High" ${project.incidentSeverity === 'High' ? 'selected' : ''}>High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-incidentType">Incident Type</label>
+                            <input type="text" id="edit-incidentType" value="${project.incidentType || ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-safetyObservations">Safety Observations</label>
+                        <textarea id="edit-safetyObservations" rows="4">${project.safetyObservations || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-contractorSafety">Contractor Safety Evaluation</label>
+                        <select id="edit-contractorSafety">
+                            <option value="Not Evaluated" ${project.contractorSafety === 'Not Evaluated' ? 'selected' : ''}>Not Evaluated</option>
+                            <option value="Poor" ${project.contractorSafety === 'Poor' ? 'selected' : ''}>Poor</option>
+                            <option value="Fair" ${project.contractorSafety === 'Fair' ? 'selected' : ''}>Fair</option>
+                            <option value="Good" ${project.contractorSafety === 'Good' ? 'selected' : ''}>Good</option>
+                            <option value="Excellent" ${project.contractorSafety === 'Excellent' ? 'selected' : ''}>Excellent</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-body-content').innerHTML = generalHtml + preMobHtml + postMobHtml;
+            document.getElementById('project-modal').classList.add('open');
+            
+            // Store projectId and phase for save
+            document.getElementById('project-modal').dataset.projectId = projectId;
+            document.getElementById('project-modal').dataset.currentPhase = project.phase;
+        }
+
+        // Switch modal tabs
+        function switchModalTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.modal-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section and activate tab
+            document.getElementById(tabName + '-section').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Toggle incident fields in edit modal
+        function toggleEditIncidentFields() {
+            const hasIncident = document.getElementById('edit-incidentOccurred').value === 'Yes';
+            document.getElementById('incident-details').style.display = hasIncident ? 'flex' : 'none';
+        }
+
+        // Archive project
+        function archiveProject(projectId) {
+            const project = app.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            project.archived = true;
+            project.archivedAt = new Date().toLocaleDateString();
+            saveData();
+
+            addNotification({
+                type: 'project_archived',
+                projectId: projectId,
+                title: 'Project Archived',
+                message: `Project "${project.title}" has been archived.`,
+                severity: 'info',
+                timestamp: new Date().toISOString()
+            });
+
+            updatePostMobilization();
+            updateDashboard();
+            updateArchive();
+        }
+
+        // Restore project
+        function restoreProject(projectId) {
+            const project = app.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            project.archived = false;
+            saveData();
+
+            addNotification({
+                type: 'project_restored',
+                projectId: projectId,
+                title: 'Project Restored',
+                message: `Project "${project.title}" has been restored.`,
+                severity: 'info',
+                timestamp: new Date().toISOString()
+            });
+
+            updateArchive();
+        }
+
+        // Add user
+        function addUser(event) {
+            event.preventDefault();
+
+            const user = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('userPassword').value,
+                email: document.getElementById('userEmail').value,
+                role: document.getElementById('userRole').value
+            };
+
+            if (app.users.find(u => u.username === user.username)) {
+                alert('Username already exists');
+                return;
+            }
+
+            app.users.push(user);
+            saveData();
+
+            addNotification({
+                type: 'user_added',
+                title: 'User Added',
+                message: `User "${user.username}" added with ${user.role} role`,
+                severity: 'info',
+                timestamp: new Date().toISOString()
+            });
+
+            event.target.reset();
+            updateUserManagement();
+        }
+
+        // Delete user
+        function deleteUser(index) {
+            if (confirm('Are you sure?')) {
+                app.users.splice(index, 1);
+                saveData();
+                updateUserManagement();
+            }
+        }
+
+        // Save project changes
+        function saveProjectChanges() {
+            const projectId = document.getElementById('project-modal').dataset.projectId;
+            const project = app.projects.find(p => p.id === projectId);
+            
+            if (!project) return;
+
+            const oldData = JSON.stringify(project);
+
+            if (project.phase === 'pre') {
+                project.prNumber = document.getElementById('edit-prNumber').value;
+                project.poNumber = document.getElementById('edit-poNumber').value;
+                project.title = document.getElementById('edit-title').value;
+                project.factory = document.getElementById('edit-factory').value;
+                project.area = document.getElementById('edit-area').value;
+                project.category = document.getElementById('edit-category').value;
+                project.vendor = document.getElementById('edit-vendor').value;
+                project.ses = document.getElementById('edit-ses').value;
+                project.ram = document.getElementById('edit-ram').value;
+                project.medicalFitness = document.getElementById('edit-medicalFitness').value;
+                project.expectedEndDate = document.getElementById('edit-expectedEndDate').value;
+            } else {
+                project.title = document.getElementById('edit-title').value;
+                project.riskCategory = document.getElementById('edit-riskCategory').value;
+                project.incidentOccurred = document.getElementById('edit-incidentOccurred').value;
+                project.incidentSeverity = document.getElementById('edit-incidentSeverity').value;
+                project.incidentType = document.getElementById('edit-incidentType').value;
+                project.supervisor = document.getElementById('edit-supervisor').value;
+                project.actualEndDate = document.getElementById('edit-actualEndDate').value;
+                project.safetyObservations = document.getElementById('edit-safetyObservations').value;
+                project.contractorSafety = document.getElementById('edit-contractorSafety').value;
+                project.satisfactory = document.getElementById('edit-satisfactory').value;
+            }
+
+            project.lastModified = new Date().toISOString();
+            saveData();
+
+            addNotification({
+                type: 'project_updated',
+                projectId: projectId,
+                title: 'Project Updated',
+                message: `Project "${project.title}" has been updated.`,
+                severity: 'info',
+                timestamp: new Date().toISOString()
+            });
+
+            closeProjectModal();
+            updateDashboard();
+            updateAllProjects();
+            if (project.phase === 'pre') updatePreMobilization();
+            if (project.phase === 'post') updatePostMobilization();
+        }
+
+        // Close project modal
+        function closeProjectModal() {
+            const modal = document.getElementById('project-modal');
+            modal.classList.add('fade-out');
+            setTimeout(() => {
+                modal.classList.remove('open', 'fade-out');
+            }, 300);
+        }
+
+        // Clear archive
+        function clearArchive() {
+            if (confirm('Delete all archived projects?')) {
+                app.projects = app.projects.filter(p => !p.archived);
+                saveData();
+                updateArchive();
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify({
+                projects: app.projects,
+                users: app.users,
+                exportDate: new Date().toISOString()
+            }, null, 2);
+
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `project-tracker-${Date.now()}.json`;
+            link.click();
+        }
+
+        // Auto-checks
+        function startAutoChecks() {
+            setInterval(() => {
+                checkOverdueProjects();
+            }, 60000);
+        }
+
+        // Initialize app
+        function initApp() {
+            loadData(); // Load users data first
+            
+            // Set up login form event listener
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                
+                // Find user in users array
+                const user = app.users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    app.currentUser = user;
+                    sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+                    document.getElementById('login-error').textContent = '';
+                    showMainApp();
+                } else {
+                    if (app.users.length === 0) {
+                        document.getElementById('login-error').textContent = 'No users found. Please contact administrator.';
+                    } else {
+                        document.getElementById('login-error').textContent = 'Invalid username or password';
+                    }
+                }
+            });
+            
+            // Check if user is logged in
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                app.currentUser = JSON.parse(loggedInUser);
+                showMainApp();
+            } else {
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+        }
+
+        function showMainApp() {
+            updateDashboard();
+            updateNotificationCount();
+            renderNotifications();
+            startAutoChecks();
+            checkOverdueProjects();
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            
+            // Show/hide user management based on role
+            const userManagementLink = document.getElementById('user-management-link');
+            if (app.currentUser && app.currentUser.role === 'Admin') {
+                userManagementLink.style.display = 'block';
+            } else {
+                userManagementLink.style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            app.currentUser = null;
+            sessionStorage.removeItem('loggedInUser');
+            showLogin();
+        }
+
+        // Debug function to check localStorage (call from console: debugStorage())
+        window.debugStorage = function() {
+            const data = localStorage.getItem('projectTrackerData');
+            console.log('Raw localStorage data:', data);
+            if (data) {
+                const parsed = JSON.parse(data);
+                console.log('Parsed data:', parsed);
+                console.log('Users:', parsed.users);
+            } else {
+                console.log('No data in localStorage');
+            }
+        };
+
+        // Debug function to clear localStorage (call from console: clearStorage())
+        window.clearStorage = function() {
+            localStorage.removeItem('projectTrackerData');
+            sessionStorage.removeItem('loggedInUser');
+            console.log('Storage cleared. Refresh the page.');
+        };
+
+        // Close modal on outside click
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'project-modal') closeProjectModal();
+            if (e.target.id === 'pre-mobilization-modal') closePreMobilizationForm();
+            if (e.target.id === 'post-mobilization-modal') closePostMobilizationForm();
+        });
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
