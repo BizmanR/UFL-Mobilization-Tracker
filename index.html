@@ -743,7 +743,7 @@
 <body>
     <div class="login-container" id="login-container">
         <form class="login-form" id="login-form">
-            <h2>UFL Project Mobilization Tracker</h2>
+            <h2>Project Mobilization Tracker</h2>
             <div class="form-group">
                 <label for="login-username">Username</label>
                 <input type="text" id="login-username" required>
@@ -766,7 +766,7 @@
             <div class="sidebar-item" onclick="switchSection('pre-mobilization')">Pre-Mobilization</div>
             <div class="sidebar-item" onclick="switchSection('post-mobilization')">Post-Mobilization</div>
             <div class="sidebar-item" onclick="switchSection('all-projects')">All Projects</div>
-            <div class="sidebar-item" onclick="switchSection('at-risk')">At-Risk Projects</div>
+            <div class="sidebar-item" onclick="switchSection('at-risk')">High Risk Projects</div>
             <div class="sidebar-item" onclick="switchSection('archive')">Archive</div>
             <div class="sidebar-item" onclick="switchSection('user-management')" id="user-management-link" style="display: none;">User Management</div>
         </div>
@@ -774,7 +774,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
-                <h1>UFL Project Mobilization Tracker</h1>
+                <h1>Project Mobilization Tracker</h1>
                 <div class="header-buttons">
                     <button class="logout-btn" onclick="logout()">Logout</button>
                     <div class="notification-bell" onclick="toggleNotificationPanel()">
@@ -795,6 +795,12 @@
                             <option value="all">All</option>
                             <option value="pre">Pre-Mobilization</option>
                             <option value="post">Post-Mobilization</option>
+                        </select>
+                        <label style="margin-left: 20px;">Filter by Status:</label>
+                        <select id="status-filter" onchange="updateDashboard()">
+                            <option value="all">All</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
                         </select>
                         <button onclick="exportToExcel()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 10px;">Export to Excel</button>
                     </div>
@@ -904,7 +910,7 @@
 
                 <!-- At-Risk Projects Section -->
                 <div class="section" id="at-risk">
-                    <h2>At-Risk Projects</h2>
+                    <h2>High Risk Projects</h2>
                     <div class="table-container">
                         <table id="at-risk-table">
                             <thead>
@@ -1021,7 +1027,8 @@
                 <form onsubmit="createPreMobilizationProject(event)">
                     <div class="form-group">
                         <label>Project ID *</label>
-                        <input type="text" id="preProjId" required>
+                        <input type="text" id="preProjId" readonly>
+                        <small style="color: #666; font-size: 11px;">Auto-generated</small>
                     </div>
                     <div class="form-group">
                         <label>PR Number</label>
@@ -1077,24 +1084,8 @@
                         <input type="text" id="preVendor">
                     </div>
                     <div class="form-group">
-                        <label>Generation of SES</label>
-                        <input type="text" id="preSES">
-                    </div>
-                    <div class="form-group">
-                        <label>Receipt/Approval of RAM</label>
-                        <select id="preRAM">
-                            <option>Pending</option>
-                            <option>Yes</option>
-                            <option>No</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Receipt/Approval of Medical Fitness</label>
-                        <select id="preMedicalFitness">
-                            <option>Pending</option>
-                            <option>Yes</option>
-                            <option>No</option>
-                        </select>
+                        <label>Supervising Process Owner</label>
+                        <input type="text" id="preSupervisor">
                     </div>
                     <div class="form-group">
                         <label>Expected End Date *</label>
@@ -1105,11 +1096,11 @@
                         <input type="file" id="preDocuments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                         <small style="color: #666; font-size: 11px;">Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG</small>
                     </div>
+                    <div class="modal-buttons" style="margin-top: 15px;">
+                        <button type="submit">Create Project</button>
+                        <button type="button" onclick="closePreMobilizationForm()">Cancel</button>
+                    </div>
                 </form>
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" onclick="createPreMobilizationProject(event)">Create Project</button>
-                <button type="button" onclick="closePreMobilizationForm()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1138,6 +1129,10 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Generation of SES</label>
+                        <input type="text" id="postSES">
+                    </div>
+                    <div class="form-group">
                         <label>Incident Occurred? *</label>
                         <select id="postIncidentOccurred" onchange="toggleIncidentFields()" required>
                             <option>No</option>
@@ -1154,11 +1149,35 @@
                     </div>
                     <div class="form-group" id="incident-type-group" style="display:none;">
                         <label>Incident Type</label>
-                        <input type="text" id="postIncidentType" placeholder="e.g., Safety, Quality, Delay">
+                        <select id="postIncidentType" onchange="toggleIncidentTypeOther()">
+                            <option value="">Select incident type...</option>
+                            <option value="Slip and Fall">Slip and Fall</option>
+                            <option value="Trip">Trip</option>
+                            <option value="Electric Shock">Electric Shock</option>
+                            <option value="Minor Injury">Minor Injury</option>
+                            <option value="Major Injury">Major Injury</option>
+                            <option value="Near Miss">Near Miss</option>
+                            <option value="Property Damage">Property Damage</option>
+                            <option value="Environmental Spill">Environmental Spill</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <input type="text" id="postIncidentTypeOther" placeholder="Please specify" style="display:none; margin-top: 5px;">
                     </div>
                     <div class="form-group">
-                        <label>Supervising Process Owner</label>
-                        <input type="text" id="postSupervisor">
+                        <label>Receipt/Approval of RAM</label>
+                        <select id="postRAM">
+                            <option>Pending</option>
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Receipt/Approval of Medical Fitness</label>
+                        <select id="postMedicalFitness">
+                            <option>Pending</option>
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Actual End Date</label>
@@ -1273,12 +1292,10 @@
 
         // Simulate email notification
         function simulateEmailNotification(notif) {
-            console.log('Email notification would be sent:', {
-                to: 'project-team@example.com',
-                subject: notif.title,
-                body: notif.message,
-                priority: notif.severity === 'high' ? 'High' : 'Normal'
-            });
+            console.log('Email notification would be sent to: project-team@example.com');
+            console.log('Subject:', notif.title);
+            console.log('Message:', notif.message);
+            console.log('Priority:', notif.severity === 'high' ? 'High' : 'Normal');
             
             // In a real application, you would call an email service API here
             // For example: sendEmail(to, subject, body, priority);
@@ -1359,6 +1376,10 @@
 
         // Open pre-mobilization form
         function openPreMobilizationForm() {
+            // Auto-generate project ID
+            const projCount = app.projects.length + 1;
+            const projId = 'PRJ' + String(projCount).padStart(5, '0');
+            document.getElementById('preProjId').value = projId;
             document.getElementById('pre-mobilization-modal').classList.add('open');
         }
 
@@ -1407,9 +1428,7 @@
                         ? document.getElementById('preCategoryInput').value 
                         : document.getElementById('preCategorySelect').value,
                     vendor: document.getElementById('preVendor').value,
-                    ses: document.getElementById('preSES').value,
-                    ram: document.getElementById('preRAM').value,
-                    medicalFitness: document.getElementById('preMedicalFitness').value,
+                    supervisor: document.getElementById('preSupervisor').value,
                     expectedEndDate: document.getElementById('preExpectedEnd').value,
                     documents: documents,
                     createdAt: new Date().toISOString(),
@@ -1434,7 +1453,7 @@
                 });
 
                 closePreMobilizationForm();
-                event.target.reset();
+                document.querySelector('#pre-mobilization-modal form').reset();
                 
                 // Reset dropdowns and hide custom inputs
                 document.getElementById('preAreaSelect').value = '';
@@ -1446,6 +1465,7 @@
                 
                 updatePreMobilization();
                 updateDashboard();
+                switchSection('pre-mobilization');
             }, fileInput.files.length * 100); // Wait for file processing
         }
 
@@ -1454,6 +1474,20 @@
             const hasIncident = document.getElementById('postIncidentOccurred').value === 'Yes';
             document.getElementById('incident-severity-group').style.display = hasIncident ? 'block' : 'none';
             document.getElementById('incident-type-group').style.display = hasIncident ? 'block' : 'none';
+        }
+
+        // Toggle incident type other field
+        function toggleIncidentTypeOther() {
+            const select = document.getElementById('postIncidentType');
+            const input = document.getElementById('postIncidentTypeOther');
+            if (select.value === 'Others') {
+                input.style.display = 'block';
+                input.required = true;
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
         }
 
         // Toggle area input field
@@ -1496,12 +1530,26 @@
                 return;
             }
 
+            // Validate that all pre-mobilization items are complete
+            if (!project.supervisor || project.supervisor === '') {
+                alert('Cannot move to post-mobilization: Supervising Process Owner is required in pre-mobilization phase.');
+                return;
+            }
+
+            if (!project.expectedEndDate || project.expectedEndDate === '') {
+                alert('Cannot move to post-mobilization: Expected End Date is required in pre-mobilization phase.');
+                return;
+            }
+
             project.phase = 'post';
             project.riskCategory = document.getElementById('postRiskCategory').value;
+            project.ses = document.getElementById('postSES').value;
             project.incidentOccurred = document.getElementById('postIncidentOccurred').value;
             project.incidentSeverity = document.getElementById('postIncidentSeverity').value;
             project.incidentType = document.getElementById('postIncidentType').value;
-            project.supervisor = document.getElementById('postSupervisor').value;
+            project.incidentTypeOther = document.getElementById('postIncidentTypeOther').value;
+            project.ram = document.getElementById('postRAM').value;
+            project.medicalFitness = document.getElementById('postMedicalFitness').value;
             project.actualEndDate = document.getElementById('postActualEnd').value;
             project.safetyObservations = document.getElementById('postSafetyObservations').value;
             project.contractorSafety = document.getElementById('postContractorSafety').value;
@@ -1682,11 +1730,14 @@
 
         // Update dashboard
         function updateDashboard() {
-            const filter = document.getElementById('dashboard-filter').value;
+            const phaseFilter = document.getElementById('dashboard-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
             let filtered = app.projects.filter(p => !p.archived);
             
-            if (filter === 'pre') filtered = filtered.filter(p => p.phase === 'pre');
-            if (filter === 'post') filtered = filtered.filter(p => p.phase === 'post');
+            if (phaseFilter === 'pre') filtered = filtered.filter(p => p.phase === 'pre');
+            if (phaseFilter === 'post') filtered = filtered.filter(p => p.phase === 'post');
+            
+            if (statusFilter !== 'all') filtered = filtered.filter(p => p.status === statusFilter);
 
             const tbody = document.getElementById('dashboard-body');
             const isAdmin = app.currentUser && app.currentUser.role === 'Admin';
@@ -1947,8 +1998,28 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="edit-ses">Generation of SES</label>
-                        <input type="text" id="edit-ses" value="${project.ses || ''}" ${!canEdit ? 'disabled' : ''}>
+                        <label for="edit-supervisor">Supervising Process Owner</label>
+                        <input type="text" id="edit-supervisor" value="${project.supervisor || ''}" ${!canEdit ? 'disabled' : ''}>
+                    </div>
+                </div>
+            `;
+
+            const postMobHtml = `
+                <div class="form-section">
+                    <h3 style="color: #9b59b6; margin-bottom: 15px; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Post-Mobilization Phase</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-riskCategory">Risk Category</label>
+                            <select id="edit-riskCategory" ${!canEdit ? 'disabled' : ''}>
+                                <option value="Low" ${project.riskCategory === 'Low' ? 'selected' : ''}>Low</option>
+                                <option value="Medium" ${project.riskCategory === 'Medium' ? 'selected' : ''}>Medium</option>
+                                <option value="High" ${project.riskCategory === 'High' ? 'selected' : ''}>High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-ses">Generation of SES</label>
+                            <input type="text" id="edit-ses" value="${project.ses || ''}" ${!canEdit ? 'disabled' : ''}>
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -1968,21 +2039,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
-            `;
-
-            const postMobHtml = `
-                <div class="form-section">
-                    <h3 style="color: #9b59b6; margin-bottom: 15px; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Post-Mobilization Phase</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="edit-riskCategory">Risk Category</label>
-                            <select id="edit-riskCategory" ${!canEdit ? 'disabled' : ''}>
-                                <option value="Low" ${project.riskCategory === 'Low' ? 'selected' : ''}>Low</option>
-                                <option value="Medium" ${project.riskCategory === 'Medium' ? 'selected' : ''}>Medium</option>
-                                <option value="High" ${project.riskCategory === 'High' ? 'selected' : ''}>High</option>
-                            </select>
-                        </div>
                         <div class="form-group">
                             <label for="edit-supervisor">Supervising Process Owner</label>
                             <input type="text" id="edit-supervisor" value="${project.supervisor || ''}" ${!canEdit ? 'disabled' : ''}>
@@ -2019,7 +2075,19 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-incidentType">Incident Type</label>
-                            <input type="text" id="edit-incidentType" value="${project.incidentType || ''}" ${!canEdit ? 'disabled' : ''}>
+                            <select id="edit-incidentType" onchange="toggleEditIncidentTypeOther()" ${!canEdit ? 'disabled' : ''}>
+                                <option value="">Select incident type...</option>
+                                <option value="Slip and Fall" ${project.incidentType === 'Slip and Fall' ? 'selected' : ''}>Slip and Fall</option>
+                                <option value="Trip" ${project.incidentType === 'Trip' ? 'selected' : ''}>Trip</option>
+                                <option value="Electric Shock" ${project.incidentType === 'Electric Shock' ? 'selected' : ''}>Electric Shock</option>
+                                <option value="Minor Injury" ${project.incidentType === 'Minor Injury' ? 'selected' : ''}>Minor Injury</option>
+                                <option value="Major Injury" ${project.incidentType === 'Major Injury' ? 'selected' : ''}>Major Injury</option>
+                                <option value="Near Miss" ${project.incidentType === 'Near Miss' ? 'selected' : ''}>Near Miss</option>
+                                <option value="Property Damage" ${project.incidentType === 'Property Damage' ? 'selected' : ''}>Property Damage</option>
+                                <option value="Environmental Spill" ${project.incidentType === 'Environmental Spill' ? 'selected' : ''}>Environmental Spill</option>
+                                <option value="Others" ${project.incidentType === 'Others' ? 'selected' : ''}>Others</option>
+                            </select>
+                            <input type="text" id="edit-incidentTypeOther" value="${project.incidentTypeOther || ''}" placeholder="Please specify" style="display:${project.incidentType === 'Others' ? 'block' : 'none'}; margin-top: 5px;" ${!canEdit ? 'disabled' : ''}>
                         </div>
                     </div>
                     <div class="form-group">
@@ -2086,6 +2154,20 @@
         function toggleEditIncidentFields() {
             const hasIncident = document.getElementById('edit-incidentOccurred').value === 'Yes';
             document.getElementById('incident-details').style.display = hasIncident ? 'flex' : 'none';
+        }
+
+        // Toggle incident type other field in edit modal
+        function toggleEditIncidentTypeOther() {
+            const select = document.getElementById('edit-incidentType');
+            const input = document.getElementById('edit-incidentTypeOther');
+            if (select.value === 'Others') {
+                input.style.display = 'block';
+                input.required = true;
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
         }
 
         // Archive project
@@ -2301,17 +2383,18 @@
                 project.area = document.getElementById('edit-area').value;
                 project.category = document.getElementById('edit-category').value;
                 project.vendor = document.getElementById('edit-vendor').value;
-                project.ses = document.getElementById('edit-ses').value;
-                project.ram = document.getElementById('edit-ram').value;
-                project.medicalFitness = document.getElementById('edit-medicalFitness').value;
+                project.supervisor = document.getElementById('edit-supervisor').value;
                 project.expectedEndDate = document.getElementById('edit-expectedEndDate').value;
             } else {
                 project.title = document.getElementById('edit-title').value;
                 project.riskCategory = document.getElementById('edit-riskCategory').value;
+                project.ses = document.getElementById('edit-ses').value;
+                project.ram = document.getElementById('edit-ram').value;
+                project.medicalFitness = document.getElementById('edit-medicalFitness').value;
                 project.incidentOccurred = document.getElementById('edit-incidentOccurred').value;
                 project.incidentSeverity = document.getElementById('edit-incidentSeverity').value;
                 project.incidentType = document.getElementById('edit-incidentType').value;
-                project.supervisor = document.getElementById('edit-supervisor').value;
+                project.incidentTypeOther = document.getElementById('edit-incidentTypeOther').value;
                 project.actualEndDate = document.getElementById('edit-actualEndDate').value;
                 project.safetyObservations = document.getElementById('edit-safetyObservations').value;
                 project.contractorSafety = document.getElementById('edit-contractorSafety').value;
